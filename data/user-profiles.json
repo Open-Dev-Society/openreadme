@@ -38,5 +38,13 @@
     "twitterUsername": "",
     "linkedinUsername": "",
     "portfolioUrl": "72602.online"
+  },
+  "felipeand7": {
+    "name": "Felipe Andrade",
+    "githubUsername": "felipeand7",
+    "profilePic": "https://avatars.githubusercontent.com/u/113254653?s=400&u=bcec37ef56fee0ae6ca470b8aabfd2e6b089735e&v=4",
+    "twitterUsername": "",
+    "linkedinUsername": "felipeand-dev",
+    "portfolioUrl": "https://felipe-and.vercel.app/"
   }
 }
