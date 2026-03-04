@@ -230,5 +230,13 @@
     "twitterUsername": "",
     "linkedinUsername": "",
     "portfolioUrl": ""
+  },
+  "nassimJaz": {
+    "name": "Nassim",
+    "githubUsername": "nassimJaz",
+    "profilePic": "",
+    "twitterUsername": "",
+    "linkedinUsername": "https://www.linkedin.com/in/nassim-jazouli-b4a105230",
+    "portfolioUrl": ""
   }
 }
