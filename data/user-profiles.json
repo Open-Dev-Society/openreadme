@@ -278,5 +278,13 @@
     "twitterUsername": "",
     "linkedinUsername": "",
     "portfolioUrl": ""
+  },
+  "ashavijit": {
+    "name": "Avijit Sen",
+    "githubUsername": "ashavijit",
+    "profilePic": "https://avatars.githubusercontent.com/u/84464278?s=400&u=20cebb4b77858ab61fe28b2f4cae519f169c246c&v=4",
+    "twitterUsername": "avijit03",
+    "linkedinUsername": "avijit-sen-69a00b1b9",
+    "portfolioUrl": "https://me.avijitsen.site/"
   }
 }
