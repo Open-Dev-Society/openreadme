@@ -302,5 +302,13 @@
     "twitterUsername": "",
     "linkedinUsername": "",
     "portfolioUrl": ""
+  },
+  "stevearmstrong-dev": {
+    "name": "Steve Armstrong",
+    "githubUsername": "stevearmstrong-dev",
+    "profilePic": "",
+    "twitterUsername": "",
+    "linkedinUsername": "stevearmstrong-dev",
+    "portfolioUrl": ""
   }
 }
