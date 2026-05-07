@@ -422,5 +422,13 @@
     "twitterUsername": "",
     "linkedinUsername": "",
     "portfolioUrl": ""
+  },
+  "PabloLucasMarinho": {
+    "name": "Pablo Marinho",
+    "githubUsername": "PabloLucasMarinho",
+    "profilePic": "",
+    "twitterUsername": "",
+    "linkedinUsername": "linkedin.com/in/pablolucasmarinho/",
+    "portfolioUrl": "pablolucasmarinho.github.io/portfolio/"
   }
 }
