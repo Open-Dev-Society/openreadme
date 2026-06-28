@@ -1,11 +1,5 @@
 [
   {
-    "hashedUsername": "c4ec0ac21bcf",
-    "actualUsername": "sunnyyoung",
-    "timestamp": "2026-01-04T02:01:53.049Z",
-    "date": "2026-01-04"
-  },
-  {
     "hashedUsername": "8185db3705af",
     "actualUsername": "SashaOv",
     "timestamp": "2026-01-04T02:02:18.124Z",
@@ -5997,6 +5991,12 @@
     "hashedUsername": "6300735261a7",
     "actualUsername": "suuumans",
     "timestamp": "2026-06-28T03:59:54.863Z",
+    "date": "2026-06-28"
+  },
+  {
+    "hashedUsername": "85b06c1e5c7e",
+    "actualUsername": "mayo-byte07",
+    "timestamp": "2026-06-28T04:00:16.205Z",
     "date": "2026-06-28"
   }
 ]
