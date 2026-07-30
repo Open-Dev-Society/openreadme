@@ -622,5 +622,13 @@
     "twitterUsername": "MKRU9922",
     "linkedinUsername": "maximilian-krupp-78896a2b3",
     "portfolioUrl": "https://linktr.ee/kruppcapital"
+  },
+  "devNiranjan7": {
+    "name": "Dev Niranjan",
+    "githubUsername": "devNiranjan7",
+    "profilePic": "https://avatars.githubusercontent.com/u/214082293?v=4",
+    "twitterUsername": "dev_niranjan7",
+    "linkedinUsername": "dev-niranjan-5810a1337",
+    "portfolioUrl": "https://devportfolio-self.vercel.app/"
   }
 }
