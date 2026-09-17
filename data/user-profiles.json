@@ -646,5 +646,13 @@
     "twitterUsername": "",
     "linkedinUsername": "",
     "portfolioUrl": ""
+  },
+  "costiash": {
+    "name": "Costa",
+    "githubUsername": "costiash",
+    "profilePic": "https://github.com/account",
+    "twitterUsername": "",
+    "linkedinUsername": "",
+    "portfolioUrl": ""
   }
 }
