@@ -1,0 +1,37 @@
+name: "OpenReadme check"
+description: "Finds the claims in your README that stopped being true: dead links, badges without a workflow, stale star counts."
+author: "Open Dev Society"
+
+branding:
+  icon: check-circle
+  color: green
+
+inputs:
+  api-url:
+    description: "Endpoint that runs the checks. Point this at your own deployment to keep README content in-house."
+    required: false
+    default: "https://openreadme.vercel.app/api/front-door"
+  comment:
+    description: "Post the findings as a pull request comment, updating the previous one rather than stacking."
+    required: false
+    default: "true"
+  fail-on-findings:
+    description: "Fail the job when a claim is no longer true. Off by default: a README that drifted should not block a fix."
+    required: false
+    default: "false"
+
+outputs:
+  findings:
+    description: "How many claims were found to be untrue."
+    value: ${{ steps.check.outputs.findings }}
+
+runs:
+  using: composite
+  steps:
+    - id: check
+      shell: bash
+      run: node "$GITHUB_ACTION_PATH/action/verify.mjs"
+      env:
+        INPUT_API_URL: ${{ inputs.api-url }}
+        INPUT_COMMENT: ${{ inputs.comment }}
+        INPUT_FAIL_ON_FINDINGS: ${{ inputs.fail-on-findings }}

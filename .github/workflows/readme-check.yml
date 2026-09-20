@@ -1,0 +1,26 @@
+name: README check
+
+on:
+  pull_request:
+    paths:
+      - "**/README.md"
+      - "**/readme.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      # The action lives in this repository, so it is used by path here. Other
+      # repositories use: Open-Dev-Society/openreadme@main
+      - uses: ./
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
