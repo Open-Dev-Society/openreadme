@@ -47,9 +47,7 @@ function readUserProfiles(): UserProfiles {
 
 // What GitHub already knows about a user, for fields they haven't filled in.
 // Failing here is not fatal: an empty field is what we had anyway.
-async function readGithubProfile(
-  username: string
-): Promise<Partial<UserProfile> & { bio?: string }> {
+async function readGithubProfile(username: string): Promise<Partial<UserProfile>> {
   try {
     const res = await fetch(`https://api.github.com/users/${username}`, {
       headers: {
@@ -73,7 +71,6 @@ async function readGithubProfile(
       profilePic: user.avatar_url || "",
       twitterUsername: user.twitter_username || "",
       portfolioUrl: user.blog || "",
-      bio: user.bio || "",
     };
   } catch (error) {
     console.warn(`GitHub lookup for ${username} failed:`, error);
@@ -173,10 +170,9 @@ export async function GET(req: NextRequest) {
     // A first-time user has nothing stored, and a returning one may have saved
     // blanks, so both cases fall through to GitHub for whatever is missing.
     const stored = profiles[username] ?? {};
-    const github = await readGithubProfile(username);
-    const profile = mergeProfile(username, stored, github);
+    const profile = mergeProfile(username, stored, await readGithubProfile(username));
 
-    return NextResponse.json({ profile, bio: github.bio ?? "" }, { status: 200 });
+    return NextResponse.json({ profile }, { status: 200 });
   } catch (error) {
     console.error("Error in GET /api/user-profile:", error);
     return NextResponse.json(

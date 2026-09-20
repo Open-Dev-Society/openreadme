@@ -6,9 +6,6 @@ import { generateContributionGraph } from "@/utils/generate-graph";
 import { fetchYearContributions } from "@/actions/fetchYearContribution";
 import { rateLimit } from "@/lib/rate-limit";
 import crypto from 'crypto';
-import React from 'react';
-import { renderToStaticMarkup } from 'react-dom/server';
-import EditorialCard from '@/components/theme/EditorialCard';
 import { Octokit } from '@octokit/rest';
 
 export const maxDuration = 45;
@@ -309,7 +306,6 @@ export async function POST(req: NextRequest) {
         const x = decodeURIComponent(searchParams.get("x") || "").trim();
         const l = decodeURIComponent(searchParams.get("l") || "").trim();
         const p = decodeURIComponent(searchParams.get("p") || "").trim();
-        const t = decodeURIComponent(searchParams.get("t") || "bento1").trim();
 
         // Validate image URL if provided
         if (i && !i.startsWith('https://')) {
@@ -325,13 +321,11 @@ export async function POST(req: NextRequest) {
         let userStats: any = {};
         let contributionStats: any = {};
         let graphSVG = "";
-        let graphDays: { date: string; contributionCount: number }[] = [];
 
         if (g) {
             try {
                 const currentYear = new Date().getFullYear();
                 const contributionDays = await fetchYearContributions(g, currentYear);
-                graphDays = contributionDays;
                 graphSVG = generateContributionGraph(contributionDays);
                 const userData = await fetchUserData(g);
                 userStats = userData.userStats;
@@ -606,36 +600,6 @@ export async function POST(req: NextRequest) {
   </body>
 </html>`;
 
-        const themedHtml = t === 'editorial'
-            ? `<!DOCTYPE html>
-<head>
-    <meta charset="UTF-8" />
-    <title>Open Readme</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-    <style>
-      body { font-family: 'Space Grotesk', sans-serif; margin: 0; background: #0b0b0d; }
-      .main-container { width: 1160px; margin: 0 auto; }
-      .contribution-graph { overflow: visible; }
-    </style>
-</head>
-  <body>
-    <div class="main-container">${renderToStaticMarkup(
-        React.createElement(EditorialCard, {
-            name: n,
-            githubURL: g,
-            twitterURL: x,
-            linkedinURL: l,
-            imageUrl: i,
-            portfolioUrl: p,
-            stats: userStats,
-            streak: contributionStats,
-        })
-    )}</div>
-  </body>
-</html>`
-            : html;
-
         if (!process.env.GITHUB_TOKEN) {
             throw new Error("GitHub token not configured");
         }
@@ -683,7 +647,7 @@ export async function POST(req: NextRequest) {
             await page.setViewport({ width: 1400, height: 1800, deviceScaleFactor: 1.5 });
 
             console.log('🎨 Setting page content...');
-            await page.setContent(themedHtml, { waitUntil: "networkidle0" });
+            await page.setContent(html, { waitUntil: "networkidle0" });
 
             console.log('📸 Taking screenshot...');
             const screenshot = await page.screenshot({ type: "png", fullPage: true }) as Buffer;
