@@ -2,6 +2,7 @@ import type { ComponentType } from "react";
 import EditorialCard from "@/components/theme/EditorialCard";
 import MinimalCard from "@/components/theme/MinimalCard";
 import PosterCard from "@/components/theme/PosterCard";
+import NeofetchCard from "@/components/theme/NeofetchCard";
 import TerminalCard from "@/components/theme/TerminalCard";
 import type { ThemeCardProps } from "@/components/theme/types";
 
@@ -11,6 +12,7 @@ import type { ThemeCardProps } from "@/components/theme/types";
 export const staticThemes: Record<string, ComponentType<ThemeCardProps>> = {
     editorial: EditorialCard,
     terminal: TerminalCard,
+    neofetch: NeofetchCard,
     minimal: MinimalCard,
     poster: PosterCard,
 };
@@ -19,6 +21,7 @@ export const staticThemes: Record<string, ComponentType<ThemeCardProps>> = {
 export const themeBackgrounds: Record<string, string> = {
     editorial: "#0b0b0d",
     terminal: "#08080a",
+    neofetch: "#0d1117",
     minimal: "#fafaf9",
     poster: "#0a0a0a",
 };

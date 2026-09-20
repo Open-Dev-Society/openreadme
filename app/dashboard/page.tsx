@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import InputBlock from "@/components/InputBlock";
 import ThemeSelector from "@/components/ThemeSelector";
@@ -22,6 +22,28 @@ export default function DashboardPage() {
 
   const [theme, setTheme] = useState<ThemeId>("bento1"); // Ensure "bento1" is a valid ThemeId
   const ThemedGrid = getThemeComponent(theme);
+
+  // Only the neofetch card needs an ASCII portrait, and sharp can only run on
+  // the server, so the preview asks for one rather than rendering it itself.
+  const [ascii, setAscii] = useState("");
+  useEffect(() => {
+    if (theme !== "neofetch" || !imageUrl) {
+      setAscii("");
+      return;
+    }
+
+    let cancelled = false;
+    fetch(`/api/ascii?url=${encodeURIComponent(imageUrl)}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (!cancelled) setAscii(data.ascii ?? "");
+      })
+      .catch((error) => console.error("ASCII portrait failed:", error));
+
+    return () => {
+      cancelled = true;
+    };
+  }, [theme, imageUrl]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/10">
@@ -85,6 +107,7 @@ export default function DashboardPage() {
               graph={graph}
               portfolioUrl={portfolioURL}
               theme={theme}
+              ascii={ascii}
             />
           </div>
 

@@ -9,6 +9,7 @@ import crypto from 'crypto';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { staticThemes, themeBackgrounds } from '@/themes/static';
+import { asciiPortrait } from '@/utils/ascii-portrait';
 import { Octokit } from '@octokit/rest';
 
 export const maxDuration = 45;
@@ -609,6 +610,16 @@ export async function POST(req: NextRequest) {
         // Any theme in the static registry renders from the same component the
         // dashboard previews; bento1 still uses the hand-written template above.
         const ThemeCard = staticThemes[t];
+
+        // The same portrait the preview asked /api/ascii for, computed directly.
+        let ascii = "";
+        if (ThemeCard && t === 'neofetch' && i) {
+            try {
+                ascii = await asciiPortrait(i);
+            } catch (error) {
+                console.warn("ASCII portrait failed, rendering without it:", error);
+            }
+        }
         const themedHtml = ThemeCard
             ? `<!DOCTYPE html>
 <head>
@@ -632,6 +643,7 @@ export async function POST(req: NextRequest) {
             portfolioUrl: p,
             stats: userStats,
             streak: contributionStats,
+            ascii,
         })
     )}</div>
   </body>

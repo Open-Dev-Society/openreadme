@@ -2,6 +2,7 @@ import type { ComponentType } from 'react';
 import OpenReadmeGrid from '@/components/theme/BentoClassic';
 import EditorialCard from '@/components/theme/EditorialCard';
 import TerminalCard from '@/components/theme/TerminalCard';
+import NeofetchCard from '@/components/theme/NeofetchCard';
 import MinimalCard from '@/components/theme/MinimalCard';
 import PosterCard from '@/components/theme/PosterCard';
 import type { UserStats, StreakStats, Graph } from '@/types';
@@ -17,9 +18,10 @@ export type ThemeComponentProps = {
   graph: Graph[] | undefined;
   portfolioUrl: string;
   theme: string; // Add the theme prop to match OpenReadmeGridProps
+  ascii?: string;
 };
 
-export type ThemeId = 'bento1' | 'editorial' | 'terminal' | 'minimal' | 'poster';
+export type ThemeId = 'bento1' | 'editorial' | 'terminal' | 'neofetch' | 'minimal' | 'poster';
 
 export interface ThemeMeta {
   id: ThemeId;
@@ -61,6 +63,15 @@ const registry: ThemeRegistryItem[] = [
       id: 'terminal',
       name: 'Terminal',
       description: 'A shell session: monospace, prompts, amber values',
+    },
+  },
+  {
+    id: 'neofetch',
+    component: NeofetchCard as unknown as ComponentType<ThemeComponentProps>,
+    meta: {
+      id: 'neofetch',
+      name: 'Neofetch',
+      description: 'ASCII portrait of your avatar beside a dotted-leader stat table',
     },
   },
   {

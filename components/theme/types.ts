@@ -12,6 +12,8 @@ export interface ThemeCardProps {
     portfolioUrl: string;
     stats: UserStats | undefined;
     streak: StreakStats | undefined;
+    /** Pre-rendered ASCII portrait; only the neofetch card uses it. */
+    ascii?: string;
 }
 
 export const formatCount = (value: number | undefined) =>
