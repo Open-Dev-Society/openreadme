@@ -1,5 +1,6 @@
 import type { ComponentType } from 'react';
 import OpenReadmeGrid from '@/components/theme/BentoClassic';
+import EditorialCard from '@/components/theme/EditorialCard';
 import type { UserStats, StreakStats, Graph } from '@/types';
 
 export type ThemeComponentProps = {
@@ -15,7 +16,7 @@ export type ThemeComponentProps = {
   theme: string; // Add the theme prop to match OpenReadmeGridProps
 };
 
-export type ThemeId = 'bento1';
+export type ThemeId = 'bento1' | 'editorial';
 
 export interface ThemeMeta {
   id: ThemeId;
@@ -39,6 +40,15 @@ const registry: ThemeRegistryItem[] = [
       name: 'Bento Classic',
       description: 'Original OpenReadme bento grid',
       preview: '/home.png',
+    },
+  },
+  {
+    id: 'editorial',
+    component: EditorialCard as unknown as ComponentType<ThemeComponentProps>,
+    meta: {
+      id: 'editorial',
+      name: 'Editorial',
+      description: 'Print logic: oversized name, ruled stat table, one accent',
     },
   },
 ];
