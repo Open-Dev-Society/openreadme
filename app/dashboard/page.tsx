@@ -4,6 +4,7 @@ import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import InputBlock from "@/components/InputBlock";
 import ThemeSelector from "@/components/ThemeSelector";
+import GenerateBar from "@/components/GenerateBar";
 import { getThemeComponent, type ThemeId } from "@/themes";
 import type { Graph, StreakStats, UserStats } from "@/types";
 
@@ -82,6 +83,18 @@ export default function DashboardPage() {
               stats={stats}
               streak={streak}
               graph={graph}
+              portfolioUrl={portfolioURL}
+              theme={theme}
+            />
+          </div>
+
+          <div className="mt-8">
+            <GenerateBar
+              name={name}
+              githubURL={githubURL}
+              twitterURL={twitterURL}
+              linkedinURL={linkedinURL}
+              imageUrl={imageUrl}
               portfolioUrl={portfolioURL}
               theme={theme}
             />

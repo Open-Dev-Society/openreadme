@@ -1,5 +1,9 @@
 import type { ComponentType } from 'react';
 import OpenReadmeGrid from '@/components/theme/BentoClassic';
+import EditorialCard from '@/components/theme/EditorialCard';
+import TerminalCard from '@/components/theme/TerminalCard';
+import MinimalCard from '@/components/theme/MinimalCard';
+import PosterCard from '@/components/theme/PosterCard';
 import type { UserStats, StreakStats, Graph } from '@/types';
 
 export type ThemeComponentProps = {
@@ -15,7 +19,7 @@ export type ThemeComponentProps = {
   theme: string; // Add the theme prop to match OpenReadmeGridProps
 };
 
-export type ThemeId = 'bento1';
+export type ThemeId = 'bento1' | 'editorial' | 'terminal' | 'minimal' | 'poster';
 
 export interface ThemeMeta {
   id: ThemeId;
@@ -39,6 +43,42 @@ const registry: ThemeRegistryItem[] = [
       name: 'Bento Classic',
       description: 'Original OpenReadme bento grid',
       preview: '/home.png',
+    },
+  },
+  {
+    id: 'editorial',
+    component: EditorialCard as unknown as ComponentType<ThemeComponentProps>,
+    meta: {
+      id: 'editorial',
+      name: 'Editorial',
+      description: 'Print logic: oversized name, ruled stat table, one accent',
+    },
+  },
+  {
+    id: 'terminal',
+    component: TerminalCard as unknown as ComponentType<ThemeComponentProps>,
+    meta: {
+      id: 'terminal',
+      name: 'Terminal',
+      description: 'A shell session: monospace, prompts, amber values',
+    },
+  },
+  {
+    id: 'minimal',
+    component: MinimalCard as unknown as ComponentType<ThemeComponentProps>,
+    meta: {
+      id: 'minimal',
+      name: 'Minimal',
+      description: 'Light, quiet, one line of numbers and nothing else',
+    },
+  },
+  {
+    id: 'poster',
+    component: PosterCard as unknown as ComponentType<ThemeComponentProps>,
+    meta: {
+      id: 'poster',
+      name: 'Poster',
+      description: 'Full-bleed photo, oversized name, stat strip',
     },
   },
 ];
