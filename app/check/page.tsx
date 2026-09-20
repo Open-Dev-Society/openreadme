@@ -30,6 +30,7 @@ const FINDING_LABELS: Record<Finding["kind"], string> = {
     "dead-image": "Dead image",
     "stale-stars": "Stale star count",
     "orphan-workflow-badge": "Badge without a workflow",
+    "license-mismatch": "Licence disagreement",
 };
 
 const scoreColor = (score: number) =>
@@ -69,6 +70,36 @@ function FileCard({ file }: { file: GeneratedFile }) {
                     {file.content}
                 </pre>
             )}
+        </div>
+    );
+}
+
+function Snippet({ title, note, code }: { title: string; note: string; code: string }) {
+    const [copied, setCopied] = useState(false);
+
+    const copy = async () => {
+        await navigator.clipboard.writeText(code);
+        setCopied(true);
+        toast.success(`${title} copied`);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    return (
+        <div className="border rounded-xl border-white/10 bg-white/[0.02]">
+            <div className="flex flex-wrap items-center gap-3 px-4 py-3 border-b border-white/10">
+                <span className="text-[13px] text-white">{title}</span>
+                <p className="flex-1 min-w-[200px] text-xs text-white/40">{note}</p>
+                <button
+                    onClick={copy}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg border border-white/10 text-white/70 hover:text-white hover:border-white/25"
+                >
+                    {copied ? <Check className="w-3.5 h-3.5" /> : <Clipboard className="w-3.5 h-3.5" />}
+                    {copied ? "Copied" : "Copy"}
+                </button>
+            </div>
+            <pre className="px-4 py-3 overflow-x-auto font-mono text-[12px] leading-relaxed whitespace-pre-wrap text-white/70">
+                {code}
+            </pre>
         </div>
     );
 }
@@ -244,6 +275,57 @@ export default function CheckPage() {
                                 </div>
                             </section>
                         )}
+
+                        <section>
+                            <h2 className="text-sm font-medium tracking-wide text-white uppercase">
+                                Keep it this way
+                            </h2>
+                            <p className="mt-1 mb-4 text-sm text-white/40">
+                                The badge shows the score wherever your README is read. The Action
+                                re-checks these claims on every pull request.
+                            </p>
+
+                            <div className="flex items-center gap-3 mb-3">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                    src={`/api/badge?repo=${result.owner}/${result.repo}`}
+                                    alt={`readme health for ${result.owner}/${result.repo}`}
+                                    height={20}
+                                />
+                                <span className="text-xs text-white/35">
+                                    updates itself — it reads the live score
+                                </span>
+                            </div>
+
+                            <div className="space-y-3">
+                                <Snippet
+                                    title="Badge"
+                                    note="Paste into your README"
+                                    code={`[![readme health](https://openreadme.vercel.app/api/badge?repo=${result.owner}/${result.repo})](https://openreadme.vercel.app/check)`}
+                                />
+                                <Snippet
+                                    title="GitHub Action"
+                                    note=".github/workflows/readme-check.yml"
+                                    code={`name: README check
+on:
+  pull_request:
+    paths: ["**/README.md"]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Open-Dev-Society/openreadme@main
+        env:
+          GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}`}
+                                />
+                            </div>
+                        </section>
 
                         <section>
                             <h2 className="text-sm font-medium tracking-wide text-white uppercase">

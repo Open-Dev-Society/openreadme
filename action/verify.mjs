@@ -30,6 +30,7 @@ const LABELS = {
     "dead-image": "Dead image",
     "stale-stars": "Stale star count",
     "orphan-workflow-badge": "Badge without a workflow",
+    "license-mismatch": "Licence disagreement",
 };
 
 function findReadme() {

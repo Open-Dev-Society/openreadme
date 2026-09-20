@@ -84,36 +84,37 @@ export default function Home() {
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 mb-8 text-sm font-medium border rounded-full bg-secondary/50 border-secondary backdrop-blur-sm">
             <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-            <span>Open Source GitHub Profile Generator</span>
+            <span>Open Source README Toolkit</span>
             <Github className="w-4 h-4" />
           </div>
 
           {/* Hero Text */}
           <h1 className="mb-6 text-4xl font-bold leading-tight sm:text-6xl lg:text-7xl">
-            Your GitHub Profile, <br/>
+            Your README is making <br/>
             <Highlight className="text-transparent bg-gradient-to-r from-teal-500 to-purple-600 bg-clip-text">
-              Reimagined
+              promises
             </Highlight>
           </h1>
 
           <p className="max-w-3xl mx-auto mb-8 text-lg leading-relaxed text-muted-foreground sm:text-xl lg:text-2xl">
-            Create stunning, auto-updating GitHub profiles with beautiful bento grids.
-            <span className="font-semibold text-foreground"> Save once, update daily, impress forever.</span>
+            Dead links, badges for workflows you deleted, star counts from last year,
+            a licence that says three different things.
+            <span className="font-semibold text-foreground"> OpenReadme finds what stopped being true, and writes what is missing.</span>
           </p>
 
           {/* CTA Buttons */}
           <div className="flex flex-col items-center justify-center gap-4 mb-12 sm:flex-row">
             <Button asChild size="lg" className="px-8 py-6 text-lg font-semibold text-white bg-teal-500 hover:bg-teal-600">
-              <Link href="/dashboard" className="flex items-center gap-2">
+              <Link href="/check" className="flex items-center gap-2">
                 <Zap className="w-5 h-5" />
-                Create Your Profile
+                Check a repository
                 <ArrowRight className="w-5 h-5" />
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg" className="px-8 py-6 text-lg font-semibold text-teal-600 border-teal-500 hover:bg-teal-50 dark:hover:bg-teal-950/20">
-              <Link href="/guide" className="flex items-center gap-2">
+              <Link href="/dashboard" className="flex items-center gap-2">
                 <Play className="w-5 h-5" />
-                View Guide
+                Profile cards
               </Link>
             </Button>
           </div>

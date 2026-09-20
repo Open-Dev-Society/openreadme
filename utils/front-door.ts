@@ -18,6 +18,8 @@ export interface Evidence {
     license: string | null;
     /** npm scripts, when the repository has a package.json. */
     scripts: Record<string, string>;
+    /** The `license` field in package.json, which often disagrees with LICENSE. */
+    packageLicense: string | null;
     packageManager: "npm" | "pnpm" | "yarn";
     hasWorkflows: boolean;
     contactEmail: string;
@@ -80,11 +82,13 @@ export async function inspectFrontDoor(
     if (!meta) throw new Error(`Cannot read ${owner}/${repo}`);
 
     let scripts: Record<string, string> = {};
+    let packageLicense: string | null = null;
     let packageManager: Evidence["packageManager"] = "npm";
     if (pkgRaw) {
         try {
             const pkg = JSON.parse(pkgRaw);
             scripts = pkg.scripts ?? {};
+            packageLicense = typeof pkg.license === "string" ? pkg.license : null;
             if (typeof pkg.packageManager === "string") {
                 if (pkg.packageManager.startsWith("pnpm")) packageManager = "pnpm";
                 if (pkg.packageManager.startsWith("yarn")) packageManager = "yarn";
@@ -116,6 +120,7 @@ export async function inspectFrontDoor(
             defaultBranch: meta.default_branch ?? "main",
             license: meta.license?.spdx_id ?? null,
             scripts,
+            packageLicense,
             packageManager,
             hasWorkflows: Array.isArray(workflows) && workflows.length > 0,
             contactEmail,

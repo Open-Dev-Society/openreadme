@@ -5,12 +5,14 @@
  * Every finding here is checked against something live. Nothing is inferred from
  * style, and nothing is reported that could not be shown to be false.
  */
+import { compareLicenses } from "./license";
 
 export type FindingKind =
     | "dead-link"
     | "dead-image"
     | "stale-stars"
-    | "orphan-workflow-badge";
+    | "orphan-workflow-badge"
+    | "license-mismatch";
 
 export interface Finding {
     kind: FindingKind;
@@ -30,6 +32,10 @@ export interface VerifyInput {
     repo: string;
     branch: string;
     token?: string;
+    /** SPDX id GitHub detected from the LICENSE file. */
+    repoLicense?: string | null;
+    /** The `license` field in package.json. */
+    packageLicense?: string | null;
 }
 
 interface Reference {
@@ -228,6 +234,20 @@ export async function verifyReadme(input: VerifyInput): Promise<Finding[]> {
                 });
             }
         }
+    }
+
+    // Which licence a project is under is stated in up to three places, and
+    // nothing keeps them in agreement.
+    for (const disagreement of compareLicenses(content, {
+        repoLicense: input.repoLicense,
+        packageLicense: input.packageLicense,
+    })) {
+        findings.push({
+            kind: "license-mismatch",
+            claim: disagreement.claim,
+            reality: disagreement.reality,
+            line: disagreement.line,
+        });
     }
 
     return findings.sort((a, b) => a.line - b.line);

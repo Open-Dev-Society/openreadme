@@ -50,6 +50,8 @@ export async function GET(req: NextRequest) {
                 repo,
                 branch: frontDoor.evidence.defaultBranch,
                 token,
+                repoLicense: frontDoor.evidence.license,
+                packageLicense: frontDoor.evidence.packageLicense,
             });
         }
 
@@ -106,6 +108,8 @@ export async function POST(req: NextRequest) {
             repo,
             branch: frontDoor.evidence.defaultBranch,
             token,
+            repoLicense: frontDoor.evidence.license,
+            packageLicense: frontDoor.evidence.packageLicense,
         });
 
         return NextResponse.json(
