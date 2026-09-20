@@ -40,3 +40,13 @@ It reports only what it can disprove. A network failure, a bot wall (403, or
 LinkedIn's 999), a rate limit or a 5xx all mean "could not check", never
 "broken" — and if the API is unreachable, the step passes rather than failing
 your build over our outage.
+
+## Badge
+
+```markdown
+[![readme health](https://openreadme.vercel.app/api/badge?repo=OWNER/REPO)](https://openreadme.vercel.app/check)
+```
+
+Reports GitHub's own community profile score: green at 80% and above, amber from
+50, red below. `&label=` renames it. A repository the API cannot read reads
+`unknown` rather than `0%` — a badge that lies is worse than no badge.
