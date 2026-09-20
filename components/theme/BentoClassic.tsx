@@ -10,7 +10,6 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-    Activity,
     AlertTriangle,
     Calendar,
     Clipboard,
@@ -331,40 +330,6 @@ const OpenReadmeGrid: React.FC<OpenReadmeGridProps> = ({
                             </div>
                         </div>
                     </a>
-                </div>
-
-                {/* GitHub Activity Graph - Enhanced */}
-                <div className="col-span-12 row-span-1">
-                    <div className="relative h-full min-h-[180px] p-6 bg-gradient-to-r from-gray-800 to-gray-800 rounded-3xl overflow-hidden shadow-xl">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-3">
-                                <Activity className="w-6 h-6 text-green-400" />
-                                <h3 className="text-xl font-semibold text-white">Activity Graph</h3>
-                            </div>
-                            <div className="px-3 py-1 text-xs font-medium text-green-400 rounded-full bg-green-400/10">
-                                Last 12 months
-                            </div>
-                        </div>
-                        {githubURL ? (
-                            <Image
-                                src={`https://github-readme-activity-graph.vercel.app/graph?username=${githubURL}&bg_color=1f2937&color=10b981&line=059669&point=34d399&area=true&hide_border=true`}
-                                alt="Activity graph"
-                                width={800}
-                                height={120}
-                                className="object-cover w-full h-full rounded-xl"
-                                onError={(e) => {
-                                    console.error("Activity graph failed to load");
-                                }}
-                            />
-                        ) : (
-                            <div className="flex items-center justify-center w-full h-24 bg-gray-700 rounded-xl">
-                                <div className="text-center text-gray-400">
-                                    <Github className="w-8 h-8 mx-auto mb-2" />
-                                    <p className="text-sm">Enter GitHub username to see activity graph</p>
-                                </div>
-                            </div>
-                        )}
-                    </div>
                 </div>
 
                 {/* Stats Grid - Enhanced */}
