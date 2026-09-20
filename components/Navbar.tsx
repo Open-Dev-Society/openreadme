@@ -45,6 +45,12 @@ export default function Navbar() {
                         Dashboard
                     </Link>
                     <Link
+                        href="/check"
+                        className="font-semibold transition-all duration-300 hover:underline hover:text-primary lg:text-lg"
+                    >
+                        Check
+                    </Link>
+                    <Link
                         href="/guide"
                         className="font-semibold transition-all duration-300 hover:underline hover:text-primary lg:text-lg"
                     >
@@ -121,6 +127,13 @@ export default function Navbar() {
                                 className="block px-4 py-3 text-base font-medium text-gray-300 transition-all duration-200 rounded-lg hover:bg-gray-800 hover:text-teal-400"
                             >
                                 Dashboard
+                            </Link>
+                            <Link
+                                href="/check"
+                                onClick={closeMenu}
+                                className="block px-4 py-3 text-base font-medium text-gray-300 transition-all duration-200 rounded-lg hover:bg-gray-800 hover:text-teal-400"
+                            >
+                                Check
                             </Link>
                             <Link
                                 href="/guide"
