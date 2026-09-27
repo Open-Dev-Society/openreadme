@@ -1,11 +1,5 @@
 [
   {
-    "hashedUsername": "897eb300ffda",
-    "actualUsername": "KARUN-0434-25",
-    "timestamp": "2026-06-28T04:08:28.155Z",
-    "date": "2026-06-28"
-  },
-  {
     "hashedUsername": "3eab8e7c18cc",
     "actualUsername": "stevearmstrong-dev",
     "timestamp": "2026-06-28T04:08:51.783Z",
@@ -5997,6 +5991,12 @@
     "hashedUsername": "45b38e3019ee",
     "actualUsername": "archduke1337",
     "timestamp": "2026-09-27T04:22:08.709Z",
+    "date": "2026-09-27"
+  },
+  {
+    "hashedUsername": "7a7e186e107d",
+    "actualUsername": "Zakaria-Filali-dev",
+    "timestamp": "2026-09-27T04:22:22.226Z",
     "date": "2026-09-27"
   }
 ]
