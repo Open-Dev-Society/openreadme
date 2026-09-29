@@ -1,8 +1,10 @@
 const fs = require('fs');
-const fetch = require('node-fetch');
 const path = require('path');
 
 const API_URL = process.env.API_URL || 'https://openreadme.vercel.app/api/openreadme';
+// Every image costs the API a headless browser launch, so this is the real throttle.
+// Turn it down if the API starts timing out or returning 429.
+const CONCURRENCY = Number(process.env.CONCURRENCY) || 6;
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const REPO_OWNER = 'Open-Dev-Society';
 const REPO_NAME = 'openreadme';
@@ -115,38 +117,38 @@ async function generateProfileImage(username, userId) {
     let successCount = 0;
     let errorCount = 0;
 
-    for (const mapping of mappings) {
-      if (!mapping.trim()) continue;
+    // Serial, this took 16s per profile: 21 minutes for 81 users, and longer with
+    // every user added. The queue is shared, so a slow profile holds up one worker
+    // instead of all of them.
+    const queue = mappings.slice();
+    console.log(`⚡ Processing ${CONCURRENCY} at a time`);
 
-      const [username, userId] = mapping.split('=');
-      if (!username || !userId) {
-        console.warn(`⚠️  Invalid mapping format: ${mapping}`);
-        continue;
-      }
-
-      console.log(`\n${'='.repeat(50)}`);
-      console.log(`🔄 Processing ${username} (${userId})`);
-      console.log(`${'='.repeat(50)}`);
-
-      try {
-        const imageUrl = await generateProfileImage(username, userId);
-        if (imageUrl) {
-          successCount++;
-          console.log(`✅ Success for ${username}: ${imageUrl}`);
-        } else {
-          errorCount++;
-          console.log(`❌ Failed for ${username}`);
+    await Promise.all(Array.from({ length: CONCURRENCY }, async () => {
+      while (queue.length > 0) {
+        const mapping = queue.shift();
+        const [username, userId] = mapping.split('=');
+        if (!username || !userId) {
+          console.warn(`⚠️  Invalid mapping format: ${mapping}`);
+          continue;
         }
 
-        // Add delay to avoid rate limiting (2 seconds between requests)
-        console.log(`⏳ Waiting 2 seconds before next request...`);
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        console.log(`🔄 Processing ${username} (${userId})`);
 
-      } catch (error) {
-        errorCount++;
-        console.error(`💥 Error processing ${username}:`, error.message);
+        try {
+          const imageUrl = await generateProfileImage(username, userId);
+          if (imageUrl) {
+            successCount++;
+            console.log(`✅ Success for ${username}: ${imageUrl}`);
+          } else {
+            errorCount++;
+            console.log(`❌ Failed for ${username}`);
+          }
+        } catch (error) {
+          errorCount++;
+          console.error(`💥 Error processing ${username}:`, error.message);
+        }
       }
-    }
+    }));
 
     console.log(`\n${'='.repeat(60)}`);
     console.log(`📊 WORKFLOW SUMMARY`);
