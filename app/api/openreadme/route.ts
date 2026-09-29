@@ -6,6 +6,10 @@ import { generateContributionGraph } from "@/utils/generate-graph";
 import { fetchYearContributions } from "@/actions/fetchYearContribution";
 import { rateLimit } from "@/lib/rate-limit";
 import crypto from 'crypto';
+import React from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { staticThemes, themeBackgrounds } from '@/themes/static';
+import { asciiPortrait } from '@/utils/ascii-portrait';
 import { Octokit } from '@octokit/rest';
 
 export const maxDuration = 45;
@@ -306,6 +310,7 @@ export async function POST(req: NextRequest) {
         const x = decodeURIComponent(searchParams.get("x") || "").trim();
         const l = decodeURIComponent(searchParams.get("l") || "").trim();
         const p = decodeURIComponent(searchParams.get("p") || "").trim();
+        const t = decodeURIComponent(searchParams.get("t") || "bento1").trim();
 
         // Validate image URL if provided
         if (i && !i.startsWith('https://')) {
@@ -321,11 +326,13 @@ export async function POST(req: NextRequest) {
         let userStats: any = {};
         let contributionStats: any = {};
         let graphSVG = "";
+        let graphDays: { date: string; contributionCount: number }[] = [];
 
         if (g) {
             try {
                 const currentYear = new Date().getFullYear();
                 const contributionDays = await fetchYearContributions(g, currentYear);
+                graphDays = contributionDays;
                 graphSVG = generateContributionGraph(contributionDays);
                 const userData = await fetchUserData(g);
                 userStats = userData.userStats;
@@ -473,29 +480,6 @@ export async function POST(req: NextRequest) {
           </div>
         </div>
 
-        <!-- GitHub Activity Graph - Fixed Height -->
-        <div class="col-span-12 row-span-1">
-          <div class="relative h-full min-h-[180px] p-6 bg-gradient-to-r from-gray-800 to-gray-800 rounded-3xl overflow-hidden shadow-xl">
-            <div class="flex items-center justify-between mb-4">
-              <div class="flex items-center gap-3">
-                <i data-lucide="activity" class="w-5 h-5 text-green-400 foreground-icon"></i>
-                <h3 class="text-lg font-semibold text-white">Activity Graph</h3>
-              </div>
-              <div class="px-3 py-1 text-md font-medium text-green-400 rounded-full bg-green-400/10">Last 12 months</div>
-            </div>
-            <div class="w-full h-full">
-              ${g ? `<img src="https://github-readme-activity-graph.vercel.app/graph?username=${g}&bg_color=1f2937&color=10b981&line=059669&point=34d399&area=true&hide_border=true" alt="Activity graph" class="object-cover w-full h-full rounded-xl" style="height: 100%; width: 100%;" />` : `
-                <div class="flex items-center justify-center w-full h-20 bg-gray-700 rounded-xl">
-                  <div class="text-center text-gray-400">
-                    <i data-lucide="github" class="w-6 h-6 mx-auto mb-2 foreground-icon"></i>
-                    <p class="text-md">Enter GitHub username to see activity graph</p>
-                  </div>
-                </div>
-              `}
-            </div>
-          </div>
-        </div>
-
         <!-- Total Stars - Hero Card -->
         <div class="col-span-12 row-span-2 md:col-span-6 lg:col-span-4">
           <div class="relative h-full min-h-[200px] p-6 bg-gradient-to-br from-yellow-600 to-orange-700 rounded-3xl overflow-hidden shadow-xl">
@@ -623,6 +607,49 @@ export async function POST(req: NextRequest) {
   </body>
 </html>`;
 
+        // Any theme in the static registry renders from the same component the
+        // dashboard previews; bento1 still uses the hand-written template above.
+        const ThemeCard = staticThemes[t];
+
+        // The same portrait the preview asked /api/ascii for, computed directly.
+        let ascii = "";
+        if (ThemeCard && t === 'neofetch' && i) {
+            try {
+                ascii = await asciiPortrait(i);
+            } catch (error) {
+                console.warn("ASCII portrait failed, rendering without it:", error);
+            }
+        }
+        const themedHtml = ThemeCard
+            ? `<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8" />
+    <title>Open Readme</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      body { font-family: 'Space Grotesk', sans-serif; margin: 0; background: ${themeBackgrounds[t] ?? '#0b0b0d'}; }
+      .main-container { width: 1160px; margin: 0 auto; }
+    </style>
+</head>
+  <body>
+    <div class="main-container">${renderToStaticMarkup(
+        React.createElement(ThemeCard, {
+            name: n,
+            githubURL: g,
+            twitterURL: x,
+            linkedinURL: l,
+            imageUrl: i,
+            portfolioUrl: p,
+            stats: userStats,
+            streak: contributionStats,
+            ascii,
+        })
+    )}</div>
+  </body>
+</html>`
+            : html;
+
         if (!process.env.GITHUB_TOKEN) {
             throw new Error("GitHub token not configured");
         }
@@ -670,7 +697,7 @@ export async function POST(req: NextRequest) {
             await page.setViewport({ width: 1400, height: 1800, deviceScaleFactor: 1.5 });
 
             console.log('🎨 Setting page content...');
-            await page.setContent(html, { waitUntil: "networkidle0" });
+            await page.setContent(themedHtml, { waitUntil: "networkidle0" });
 
             console.log('📸 Taking screenshot...');
             const screenshot = await page.screenshot({ type: "png", fullPage: true }) as Buffer;

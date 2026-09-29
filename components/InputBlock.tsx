@@ -71,10 +71,11 @@ export default function InputBlock({
 
     try {
       // Fetch all data in parallel to improve performance
-      const [statsPromise, streakPromise, graphPromise] = [
+      const [statsPromise, streakPromise, graphPromise, profilePromise] = [
         fetch("/api/stats?&username=" + gUrl),
         fetch("/api/streak?&username=" + gUrl),
-        fetch("/api/graph?username=" + gUrl)
+        fetch("/api/graph?username=" + gUrl),
+        fetch("/api/user-profile?username=" + gUrl)
       ];
 
       // Wait for stats first to validate the username
@@ -118,10 +119,57 @@ export default function InputBlock({
 
       setGithubURL(gUrl);
       setSaved(prev => ({ ...prev, github: true }));
-      
+
+      // Fill the fields the user hasn't typed from what GitHub already knows.
+      // Anything they did type wins, so this never overwrites their work.
+      const filled = {
+        name: nameText,
+        profilePic: iUrl,
+        twitterUsername: tUrl,
+        linkedinUsername: lUrl,
+        portfolioUrl: pUrl,
+      };
+
+      try {
+        const profileResponse = await profilePromise;
+        const { profile } = await profileResponse.json();
+
+        if (profile) {
+          const autofill: [keyof typeof filled, string, (v: string) => void, (v: string) => void][] = [
+            ["name", profile.name, setNameText, setName],
+            ["profilePic", profile.profilePic, setIUrl, setImageUrl],
+            ["twitterUsername", profile.twitterUsername, setTUrl, setTwitterURL],
+            ["portfolioUrl", profile.portfolioUrl, setPUrl, setPortfolioURL],
+          ];
+
+          const autofilled: string[] = [];
+          for (const [field, value, setLocal, setParent] of autofill) {
+            if (filled[field] || !value) continue;
+            filled[field] = value;
+            setLocal(value);
+            setParent(value);
+            autofilled.push(field);
+          }
+
+          if (autofilled.length > 0) {
+            setSaved(prev => ({
+              ...prev,
+              name: prev.name || autofilled.includes("name"),
+              image: prev.image || autofilled.includes("profilePic"),
+              twitter: prev.twitter || autofilled.includes("twitterUsername"),
+              portfolio: prev.portfolio || autofilled.includes("portfolioUrl"),
+            }));
+            toast.info(`Filled ${autofilled.length} field${autofilled.length > 1 ? "s" : ""} from GitHub — edit any of them`);
+          }
+        }
+      } catch (profileError) {
+        console.error("Profile autofill error:", profileError);
+        // Non-fatal: the user types the fields themselves, as before.
+      }
+
       // Save all current profile data to the backend
-      await saveUserProfile(gUrl);
-      
+      await saveUserProfile(gUrl, filled);
+
       toast.success("Github data loaded successfully");
     } catch (error) {
       console.error("GitHub data fetch error:", error);
@@ -131,7 +179,24 @@ export default function InputBlock({
     }
   };
 
-  const saveUserProfile = async (username: string) => {
+  // Values are passed in rather than read from state, because a caller that
+  // just autofilled them would otherwise save the pre-autofill values.
+  const saveUserProfile = async (
+    username: string,
+    values: {
+      name: string;
+      profilePic: string;
+      twitterUsername: string;
+      linkedinUsername: string;
+      portfolioUrl: string;
+    } = {
+      name: nameText,
+      profilePic: iUrl,
+      twitterUsername: tUrl,
+      linkedinUsername: lUrl,
+      portfolioUrl: pUrl,
+    }
+  ) => {
     try {
       console.log("💾 Saving user profile for:", username);
       const response = await fetch("/api/user-profile", {
@@ -141,11 +206,7 @@ export default function InputBlock({
         },
         body: JSON.stringify({
           username: username,
-          name: nameText,
-          profilePic: iUrl,
-          twitterUsername: tUrl,
-          linkedinUsername: lUrl,
-          portfolioUrl: pUrl,
+          ...values,
         }),
       });
 

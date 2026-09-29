@@ -28,12 +28,6 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'github-readme-activity-graph.vercel.app',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
         hostname: 'i.postimg.cc',
         port: '',
         pathname: '/**',
