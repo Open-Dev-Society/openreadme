@@ -7,7 +7,6 @@ import { fetchYearContributions } from "@/actions/fetchYearContribution";
 import { rateLimit } from "@/lib/rate-limit";
 import crypto from 'crypto';
 import React from 'react';
-import { renderToStaticMarkup } from 'react-dom/server';
 import { staticThemes, themeBackgrounds } from '@/themes/static';
 import { asciiPortrait } from '@/utils/ascii-portrait';
 import { Octokit } from '@octokit/rest';
@@ -620,7 +619,12 @@ export async function POST(req: NextRequest) {
                 console.warn("ASCII portrait failed, rendering without it:", error);
             }
         }
-        const themedHtml = ThemeCard
+        // react-dom/server cannot be imported statically in an App Router module;
+        // load it only when a static theme actually needs rendering.
+        const renderToStaticMarkup = ThemeCard
+            ? (await import('react-dom/server')).renderToStaticMarkup
+            : null;
+        const themedHtml = ThemeCard && renderToStaticMarkup
             ? `<!DOCTYPE html>
 <head>
     <meta charset="UTF-8" />
