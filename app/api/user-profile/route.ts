@@ -45,6 +45,56 @@ function readUserProfiles(): UserProfiles {
   }
 }
 
+// What GitHub already knows about a user, for fields they haven't filled in.
+// Failing here is not fatal: an empty field is what we had anyway.
+async function readGithubProfile(username: string): Promise<Partial<UserProfile>> {
+  try {
+    const res = await fetch(`https://api.github.com/users/${username}`, {
+      headers: {
+        Accept: "application/vnd.github.v3+json",
+        "User-Agent": "OpenReadme",
+        ...(process.env.GITHUB_TOKEN
+          ? { Authorization: `token ${process.env.GITHUB_TOKEN}` }
+          : {}),
+      },
+      next: { revalidate: 3600 },
+    });
+
+    if (!res.ok) {
+      console.warn(`GitHub lookup for ${username} returned ${res.status}`);
+      return {};
+    }
+
+    const user = await res.json();
+    return {
+      name: user.name || "",
+      profilePic: user.avatar_url || "",
+      twitterUsername: user.twitter_username || "",
+      portfolioUrl: user.blog || "",
+    };
+  } catch (error) {
+    console.warn(`GitHub lookup for ${username} failed:`, error);
+    return {};
+  }
+}
+
+// Stored values win; GitHub fills the blanks.
+function mergeProfile(
+  username: string,
+  stored: Partial<UserProfile>,
+  github: Partial<UserProfile>
+): UserProfile {
+  const pick = (field: keyof UserProfile) => stored[field] || github[field] || "";
+  return {
+    name: pick("name"),
+    githubUsername: username,
+    profilePic: pick("profilePic"),
+    twitterUsername: pick("twitterUsername"),
+    linkedinUsername: stored.linkedinUsername || "",
+    portfolioUrl: pick("portfolioUrl"),
+  };
+}
+
 // Helper function to write user profiles (local only)
 function writeUserProfilesLocal(profiles: UserProfiles): void {
   try {
@@ -117,16 +167,12 @@ export async function GET(req: NextRequest) {
     }
 
     const profiles = readUserProfiles();
-    const userProfile = profiles[username];
+    // A first-time user has nothing stored, and a returning one may have saved
+    // blanks, so both cases fall through to GitHub for whatever is missing.
+    const stored = profiles[username] ?? {};
+    const profile = mergeProfile(username, stored, await readGithubProfile(username));
 
-    if (!userProfile) {
-      return NextResponse.json(
-        { error: "User profile not found" },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json({ profile: userProfile }, { status: 200 });
+    return NextResponse.json({ profile }, { status: 200 });
   } catch (error) {
     console.error("Error in GET /api/user-profile:", error);
     return NextResponse.json(
@@ -177,14 +223,17 @@ export async function POST(req: NextRequest) {
       console.log(`✅ Added new user to mapping: ${username} -> ${hashId}`);
     }
 
-    // Save or update user profile
+    // Save or update user profile.
+    // An empty field means "not supplied", not "clear it": a form submitted with
+    // only a username must not wipe a name the user saved earlier.
+    const existing = profiles[username];
     profiles[username] = {
-      name: name || "",
+      name: name || existing?.name || "",
       githubUsername: username,
-      profilePic: profilePic || "",
-      twitterUsername: twitterUsername || "",
-      linkedinUsername: linkedinUsername || "",
-      portfolioUrl: portfolioUrl || "",
+      profilePic: profilePic || existing?.profilePic || "",
+      twitterUsername: twitterUsername || existing?.twitterUsername || "",
+      linkedinUsername: linkedinUsername || existing?.linkedinUsername || "",
+      portfolioUrl: portfolioUrl || existing?.portfolioUrl || "",
     };
 
     // Write to local files (for development)
@@ -193,24 +242,30 @@ export async function POST(req: NextRequest) {
       writeUserMappingLocal(userMapping);
     }
 
-    // Write to GitHub repository (for production)
-    try {
-      await updateGitHubFile(
-        "data/user-profiles.json",
-        JSON.stringify(profiles, null, 2),
-        `chore: update profile for ${username}`
-      );
-
-      if (mappingUpdated) {
+    // Write to GitHub repository (for production).
+    // Guarded: without this, running the app locally commits every test save to
+    // the production repo, since a working .env.local holds a real token.
+    if (process.env.NODE_ENV === "production") {
+      try {
         await updateGitHubFile(
-          "data/user-mapping.json",
-          JSON.stringify(userMapping, null, 2),
-          `chore: add mapping for ${username}`
+          "data/user-profiles.json",
+          JSON.stringify(profiles, null, 2),
+          `chore: update profile for ${username}`
         );
+
+        if (mappingUpdated) {
+          await updateGitHubFile(
+            "data/user-mapping.json",
+            JSON.stringify(userMapping, null, 2),
+            `chore: add mapping for ${username}`
+          );
+        }
+      } catch (githubError) {
+        console.error("Failed to update GitHub files:", githubError);
+        // Continue anyway - local files are updated
       }
-    } catch (githubError) {
-      console.error("Failed to update GitHub files:", githubError);
-      // Continue anyway - local files are updated
+    } else {
+      console.log(`📝 Dev mode: saved ${username} to local files only`);
     }
 
     return NextResponse.json(
