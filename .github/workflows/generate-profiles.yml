@@ -3,14 +3,11 @@ name: Generate Profile Images
 on:
   workflow_dispatch:  # Manual trigger
   schedule:
-    # Run at 00:00 UTC every day
+    # Run at 00:00 UTC every Sunday
     - cron: '0 0 * * 0'
 
 permissions:
-  contents: write
-  pull-requests: write
-  packages: read
-  actions: read
+  contents: read
 
 jobs:
   generate-images:
@@ -20,9 +17,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.IMAGE_TOKEN || github.token }}
-          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -39,210 +33,11 @@ jobs:
           MAPPINGS=$(jq -r 'to_entries | map("\(.key)=\(.value)") | join(" ")' data/user-mapping.json)
           echo "mappings=${MAPPINGS}" >> $GITHUB_OUTPUT
 
-      - name: Configure Git
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions@github.com"
-          git config --global --add safe.directory /github/workspace
-
-      - name: Stage any existing changes
-        run: |
-          git config --global --add safe.directory /github/workspace
-          git add .
-
-      - name: Commit any existing changes
-        run: |
-          git diff-index --quiet HEAD || git commit -m "chore: update generated files [skip ci]"
-
-      - name: Pull latest changes
-        run: git pull origin main --rebase
-
+      # The API stores the images it generates, so nothing lands in this repo
+      # and this job has nothing to commit.
       - name: Generate profile images
         env:
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+          MAPPINGS: ${{ steps.user-mappings.outputs.mappings }}
+          API_URL: https://openreadme.vercel.app/api/openreadme
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          npm install node-fetch@2
-
-          cat > generate-images.js << 'EOL'
-          const fs = require('fs');
-          const fetch = require('node-fetch');
-          const path = require('path');
-
-          const API_URL = process.env.API_URL || 'https://openreadme.vercel.app/api/openreadme';
-          const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-          const REPO_OWNER = 'Open-Dev-Society';
-          const REPO_NAME = 'openreadme';
-
-          // Read user profiles from JSON file
-          function readUserProfiles() {
-            try {
-              const profilesPath = path.join(process.cwd(), 'data', 'user-profiles.json');
-              const data = fs.readFileSync(profilesPath, 'utf-8');
-              return JSON.parse(data);
-            } catch (error) {
-              console.error('⚠️  Error reading user profiles:', error.message);
-              return {};
-            }
-          }
-
-          async function generateProfileImage(username, userId) {
-            try {
-              console.log(`🎨 Generating image for ${username} (${userId})...`);
-
-              // Read stored user profile data first
-              const userProfiles = readUserProfiles();
-              const storedProfile = userProfiles[username] || {};
-
-              console.log(`📦 Stored profile data:`, storedProfile);
-
-              // Get user data from GitHub API as fallback
-              const userResponse = await fetch(`https://api.github.com/users/${username}`, {
-                headers: {
-                  'Authorization': `token ${GITHUB_TOKEN}`,
-                  'Accept': 'application/vnd.github.v3+json',
-                  'User-Agent': 'OpenReadme-Workflow'
-                }
-              });
-
-              if (!userResponse.ok) {
-                console.warn(`⚠️  GitHub API warning for ${username}: ${userResponse.statusText}`);
-              }
-
-              const userData = userResponse.ok ? await userResponse.json() : { login: username };
-
-              // Prioritize stored profile data over GitHub API data
-              const name = storedProfile.name || userData.name || username;
-              const profilePic = storedProfile.profilePic || userData.avatar_url || '';
-              const twitterUsername = storedProfile.twitterUsername || userData.twitter_username || '';
-              const linkedinUsername = storedProfile.linkedinUsername || '';
-              const portfolioUrl = storedProfile.portfolioUrl || userData.blog || userData.html_url || '';
-
-              console.log(`✅ Using data - Name: ${name}, Twitter: ${twitterUsername}, LinkedIn: ${linkedinUsername}`);
-
-              // Build API URL with parameters
-              const params = new URLSearchParams({
-                username: username,  // Required for API validation
-                n: name,
-                i: profilePic,
-                g: username,
-                x: twitterUsername,
-                l: linkedinUsername,
-                p: portfolioUrl,
-                t: 'classic'
-              });
-
-              const apiUrl = `${API_URL}?${params.toString()}`;
-              console.log(`📡 Calling API: ${apiUrl}`);
-
-              const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: {
-                  'Accept': 'application/json',
-                  'Content-Type': 'application/json',
-                  'User-Agent': 'OpenReadme-Workflow'
-                }
-              });
-
-              console.log(`📊 Response status: ${response.status} ${response.statusText}`);
-
-              if (!response.ok) {
-                const errorText = await response.text();
-                console.error(`❌ API error response: ${errorText}`);
-                throw new Error(`API error (${response.status}): ${errorText}`);
-              }
-
-              const result = await response.json();
-              console.log(`✅ Successfully generated image for ${username}`);
-              console.log(`🔗 Image URL: ${result.url}`);
-              console.log(`📝 Method: ${result.method}`);
-
-              return result.url;
-
-            } catch (error) {
-              console.error(`❌ Error generating image for ${username}:`, error.message);
-              console.error(`🔍 Stack trace:`, error.stack);
-              return null;
-            }
-          }
-
-          // Process all users
-          (async () => {
-            try {
-              const mappingsString = process.env.MAPPINGS || '';
-              const mappings = mappingsString.split(' ').filter(m => m.trim());
-              console.log(`📋 Found ${mappings.length} users to process`);
-              console.log(`🔧 Using API URL: ${API_URL}`);
-
-              if (mappings.length === 0) {
-                console.log('⚠️  No user mappings found to process');
-                return;
-              }
-
-              let successCount = 0;
-              let errorCount = 0;
-
-              for (const mapping of mappings) {
-                if (!mapping.trim()) continue;
-
-                const [username, userId] = mapping.split('=');
-                if (!username || !userId) {
-                  console.warn(`⚠️  Invalid mapping format: ${mapping}`);
-                  continue;
-                }
-
-                console.log(`\n${'='.repeat(50)}`);
-                console.log(`🔄 Processing ${username} (${userId})`);
-                console.log(`${'='.repeat(50)}`);
-
-                try {
-                  const imageUrl = await generateProfileImage(username, userId);
-                  if (imageUrl) {
-                    successCount++;
-                    console.log(`✅ Success for ${username}: ${imageUrl}`);
-                  } else {
-                    errorCount++;
-                    console.log(`❌ Failed for ${username}`);
-                  }
-
-                  // Add delay to avoid rate limiting (2 seconds between requests)
-                  console.log(`⏳ Waiting 2 seconds before next request...`);
-                  await new Promise(resolve => setTimeout(resolve, 2000));
-
-                } catch (error) {
-                  errorCount++;
-                  console.error(`💥 Error processing ${username}:`, error.message);
-                }
-              }
-
-              console.log(`\n${'='.repeat(60)}`);
-              console.log(`📊 WORKFLOW SUMMARY`);
-              console.log(`${'='.repeat(60)}`);
-              console.log(`✅ Successful: ${successCount}`);
-              console.log(`❌ Failed: ${errorCount}`);
-              console.log(`📋 Total: ${successCount + errorCount}`);
-              console.log(`${'='.repeat(60)}`);
-
-            } catch (error) {
-              console.error('💥 Workflow failed:', error.message);
-              process.exit(1);
-            }
-          })();
-          EOL
-
-          MAPPINGS="${{ steps.user-mappings.outputs.mappings }}" \
-          API_URL="https://openreadme.vercel.app/api/openreadme" \
-          node generate-images.js
-
-      - name: Commit and push changes
-        if: github.repository == 'Open-Dev-Society/openreadme' && (github.event_name == 'workflow_dispatch' || github.event_name == 'schedule')
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN || secrets.IMAGE_TOKEN }}
-        run: |
-          git add .
-          if ! git diff-index --quiet HEAD --; then
-            git commit -m "chore: update profile images [skip ci]"
-            git pull origin main --rebase || true
-            git push https://${{ github.actor }}:$GITHUB_TOKEN@github.com/${{ github.repository }}.git HEAD:main
-          fi
+        run: node generate-images.js
