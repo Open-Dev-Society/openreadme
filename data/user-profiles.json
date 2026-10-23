@@ -670,5 +670,13 @@
     "twitterUsername": "elonmusk",
     "linkedinUsername": "elonmusk",
     "portfolioUrl": "test.com"
+  },
+  "ErpanOmer": {
+    "name": "ErpanOmer",
+    "githubUsername": "ErpanOmer",
+    "profilePic": "https://avatars.githubusercontent.com/u/25244228?v=4",
+    "twitterUsername": "",
+    "linkedinUsername": "",
+    "portfolioUrl": "https://erpanomer.nurverse.com"
   }
 }
